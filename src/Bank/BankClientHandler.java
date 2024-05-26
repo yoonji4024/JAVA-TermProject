@@ -18,23 +18,26 @@ public class BankClientHandler extends Thread {
             // 로그인 및 요청 처리 로직
             String userId = input.readUTF();
             String password = input.readUTF();
+            String requestType = input.readUTF();
 
-            // 사용자 인증
-            User user = BankServer.getUser(userId);
-            Admin admin = BankServer.getAdmin(userId);
-            if (user != null && user.getPassword().equals(password)) {
-                output.writeUTF("USER");
-                output.flush();
-                handleUserRequests(user, input, output);
-            } 
-            else if (admin != null && admin.getPassword().equals(password)) {
-                output.writeUTF("ADMIN");
-                output.flush();
-                handleAdminRequests(admin, input, output);
-            } 
-            else {
-                output.writeUTF("FAIL");
-                output.flush();
+            if ("REGISTER".equals(requestType)) {
+                BankService.handleRegisterRequest(userId, password, output);
+            } else {
+                // 로그인 요청 처리
+                User user = BankServer.getUser(userId);
+                Admin admin = BankServer.getAdmin(userId);
+                if (user != null && user.getPassword().equals(password)) {
+                    output.writeUTF("USER");
+                    output.flush();
+                    handleUserRequests(user, input, output);
+                } else if (admin != null && admin.getPassword().equals(password)) {
+                    output.writeUTF("ADMIN");
+                    output.flush();
+                    handleAdminRequests(admin, input, output);
+                } else {
+                    output.writeUTF("FAIL");
+                    output.flush();
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();

@@ -4,13 +4,13 @@ import java.io.*;
 import java.util.*;
 
 public class BankService {
+
     public static void handleRequest(User user, String request, ObjectInputStream input, ObjectOutputStream output) throws IOException {
         switch (request) {
             case "VIEW_ACCOUNTS":
                 output.writeUTF(user.getAccounts().toString());
                 output.flush();
                 break;
-                
             case "DEPOSIT":
                 String accountNumber = input.readUTF();
                 double amount = input.readDouble();
@@ -18,13 +18,11 @@ public class BankService {
                 if (account != null) {
                     account.deposit(amount);
                     output.writeUTF("Deposit successful");
-                } 
-                else {
+                } else {
                     output.writeUTF("Account not found");
                 }
                 output.flush();
                 break;
-                
             case "WITHDRAW":
                 accountNumber = input.readUTF();
                 amount = input.readDouble();
@@ -33,17 +31,14 @@ public class BankService {
                     if (account.getBalance() >= amount) {
                         account.withdraw(amount);
                         output.writeUTF("Withdrawal successful");
-                    } 
-                    else {
+                    } else {
                         output.writeUTF("Insufficient funds");
                     }
-                } 
-                else {
+                } else {
                     output.writeUTF("Account not found");
                 }
                 output.flush();
                 break;
-                
             case "TRANSFER":
                 String fromAccountNumber = input.readUTF();
                 String toAccountNumber = input.readUTF();
@@ -55,16 +50,15 @@ public class BankService {
                         fromAccount.withdraw(amount);
                         toAccount.deposit(amount);
                         output.writeUTF("Transfer successful");
-                    } 
-                    else {
+                    } else {
                         output.writeUTF("Insufficient funds");
                     }
-                } 
-                else {
+                } else {
                     output.writeUTF("Account not found");
                 }
                 output.flush();
                 break;
+            // 기타 사용자 요청 처리
         }
     }
 
@@ -75,19 +69,28 @@ public class BankService {
                 output.writeUTF(users.toString());
                 output.flush();
                 break;
-                
             case "VIEW_USER_DETAILS":
                 String userId = input.readUTF();
-                User user = admin.getUserDetails(userId); 
+                User user = admin.getUserDetails(userId);
                 if (user != null) {
                     output.writeUTF(user.toString());
-                }
-                else {
+                } else {
                     output.writeUTF("User not found");
                 }
                 output.flush();
                 break;
+            // 기타 관리자 요청 처리
         }
+    }
+
+    public static void handleRegisterRequest(String userId, String password, ObjectOutputStream output) throws IOException {
+        User newUser = new User(userId, password);
+        if (BankServer.addUser(newUser)) {
+            output.writeUTF("REGISTER_SUCCESS");
+        } else {
+            output.writeUTF("REGISTER_FAIL");
+        }
+        output.flush();
     }
 
     private static Account getAccount(User user, String accountNumber) {

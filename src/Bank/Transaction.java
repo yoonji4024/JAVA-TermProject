@@ -1,7 +1,8 @@
 package Bank;
-import java.util.*;
 
-public class Transaction { // 거래 class
+import java.util.Date;
+
+public class Transaction {
     private String type;
     private double amount;
     private Date date;
@@ -23,5 +24,13 @@ public class Transaction { // 거래 class
     public Date getDate() {
         return date;
     }
-}
 
+    @Override
+    public String toString() {
+        return "Transaction{" +
+                "type='" + type + '\'' +
+                ", amount=" + amount +
+                ", date=" + date +
+                '}';
+    }
+}

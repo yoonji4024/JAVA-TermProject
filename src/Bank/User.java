@@ -1,30 +1,40 @@
 package Bank;
-import java.util.*;
 
-public class User { // 사용자 class
-	private String userID;
-	private String password;
-	private List<Account> accounts;
-	
-	public User(String userID, String password) {
-		this.userID = userID;
-		this.password = password;
-		this.accounts = new ArrayList<>();
-	}
-	
-	public String getUserID() {
-		return userID;
-	}
-	
-	public String getPassword() {
-		return password;
-	}
-	
-	public List<Account> getAccounts() {
-		return accounts;
-	}
-	
-	public void addAccount(Account account) {
-		accounts.add(account);
-	}
+import java.util.ArrayList;
+import java.util.List;
+
+public class User {
+    private String userId;
+    private String password;
+    private List<Account> accounts;
+
+    public User(String userId, String password) {
+        this.userId = userId;
+        this.password = password;
+        this.accounts = new ArrayList<>();
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public List<Account> getAccounts() {
+        return accounts;
+    }
+
+    public void addAccount(Account account) {
+        accounts.add(account);
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "userId='" + userId + '\'' +
+                ", accounts=" + accounts +
+                '}';
+    }
 }

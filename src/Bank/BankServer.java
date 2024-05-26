@@ -6,10 +6,11 @@ import java.util.*;
 
 public class BankServer {
     private static final int PORT = 12345;
-    private static Map<String, User> users = new HashMap<>();
-    private static Map<String, Admin> admins = new HashMap<>();
+    private static final Map<String, User> users = Collections.synchronizedMap(new HashMap<>());
+    private static final Map<String, Admin> admins = Collections.synchronizedMap(new HashMap<>());
 
     public static void main(String[] args) {
+        initializeData();
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             System.out.println("Bank server is running...");
             while (true) {
@@ -21,19 +22,35 @@ public class BankServer {
         }
     }
 
-    public static synchronized User getUser(String userId) {
-        return users.get(userId);
+    public static User getUser(String userId) {
+        synchronized (users) {
+            return users.get(userId);
+        }
     }
 
-    public static synchronized Admin getAdmin(String adminId) {
-        return admins.get(adminId);
+    public static Admin getAdmin(String adminId) {
+        synchronized (admins) {
+            return admins.get(adminId);
+        }
     }
 
-    public static synchronized List<User> getAllUsers() {
-        return new ArrayList<>(users.values());
+    public static List<User> getAllUsers() {
+        synchronized (users) {
+            return new ArrayList<>(users.values());
+        }
     }
 
-    static {
+    public static boolean addUser(User user) {
+        synchronized (users) {
+            if (!users.containsKey(user.getUserId())) {
+                users.put(user.getUserId(), user);
+                return true;
+            }
+            return false;
+        }
+    }
+
+    private static void initializeData() {
         users.put("user1", new User("user1", "password1"));
         admins.put("admin1", new Admin("admin1", "adminpass"));
     }

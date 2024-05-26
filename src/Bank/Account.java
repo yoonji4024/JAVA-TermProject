@@ -1,7 +1,9 @@
 package Bank;
-import java.util.*;
 
-public class Account { // 계좌 class
+import java.util.ArrayList;
+import java.util.List;
+
+public class Account {
     private String accountNumber;
     private double balance;
     private List<Transaction> transactions;
@@ -36,5 +38,14 @@ public class Account { // 계좌 class
 
     public List<Transaction> getTransactions() {
         return transactions;
+    }
+
+    @Override
+    public String toString() {
+        return "Account{" +
+                "accountNumber='" + accountNumber + '\'' +
+                ", balance=" + balance +
+                ", transactions=" + transactions +
+                '}';
     }
 }
