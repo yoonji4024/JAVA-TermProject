@@ -15,26 +15,29 @@ public class BankClientHandler extends Thread {
             ObjectInputStream input = new ObjectInputStream(socket.getInputStream());
             ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
         ) {
-            // 로그인 및 요청 처리 로직
             String userId = input.readUTF();
             String password = input.readUTF();
             String requestType = input.readUTF();
 
+            System.out.println("Request Type: " + requestType); // 로그 추가
+
             if ("REGISTER".equals(requestType)) {
                 BankService.handleRegisterRequest(userId, password, output);
-            } else {
-                // 로그인 요청 처리
+            } 
+            else {
                 User user = BankServer.getUser(userId);
                 Admin admin = BankServer.getAdmin(userId);
                 if (user != null && user.getPassword().equals(password)) {
                     output.writeUTF("USER");
                     output.flush();
                     handleUserRequests(user, input, output);
-                } else if (admin != null && admin.getPassword().equals(password)) {
+                } 
+                else if (admin != null && admin.getPassword().equals(password)) {
                     output.writeUTF("ADMIN");
                     output.flush();
                     handleAdminRequests(admin, input, output);
-                } else {
+                } 
+                else {
                     output.writeUTF("FAIL");
                     output.flush();
                 }
@@ -45,22 +48,34 @@ public class BankClientHandler extends Thread {
     }
 
     private void handleUserRequests(User user, ObjectInputStream input, ObjectOutputStream output) throws IOException {
-        while (true) {
-            String request = input.readUTF();
-            if (request.equals("EXIT")) {
-                break;
+        try {
+            while (true) {
+                String request = input.readUTF();
+                System.out.println("User Request: " + request); // 로그 추가
+                if (request.equals("EXIT")) {
+                    break;
+                }
+                BankService.handleRequest(user, request, input, output);
             }
-            BankService.handleRequest(user, request, input, output);
+        } catch (IOException e) {
+            output.writeUTF("ERROR: " + e.getMessage());
+            output.flush();
         }
     }
 
     private void handleAdminRequests(Admin admin, ObjectInputStream input, ObjectOutputStream output) throws IOException {
-        while (true) {
-            String request = input.readUTF();
-            if (request.equals("EXIT")) {
-                break;
+        try {
+            while (true) {
+                String request = input.readUTF();
+                System.out.println("Admin Request: " + request); // 로그 추가
+                if (request.equals("EXIT")) {
+                    break;
+                }
+                BankService.handleAdminRequest(admin, request, input, output);
             }
-            BankService.handleAdminRequest(admin, request, input, output);
+        } catch (IOException e) {
+            output.writeUTF("ERROR: " + e.getMessage());
+            output.flush();
         }
     }
 }

@@ -1,10 +1,7 @@
 package Exception;
 
-public class LoginFailedException {
-
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
-	}
-
+public class LoginFailedException extends Exception {
+    public LoginFailedException(String message) {
+        super(message);
+    }
 }

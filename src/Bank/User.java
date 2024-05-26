@@ -1,9 +1,10 @@
 package Bank;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class User {
+public class User implements Serializable {
     private String userId;
     private String password;
     private List<Account> accounts;

@@ -1,17 +1,23 @@
 package Bank;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Account {
+public class Account implements Serializable {
+    private static int accountCounter = 1000000000; // 초기 계좌 번호 시작 (10자리)
     private String accountNumber;
     private double balance;
     private List<Transaction> transactions;
 
-    public Account(String accountNumber) {
-        this.accountNumber = accountNumber;
+    public Account() {
+        this.accountNumber = generateAccountNumber();
         this.balance = 0.0;
         this.transactions = new ArrayList<>();
+    }
+
+    private static synchronized String generateAccountNumber() {
+        return String.valueOf(accountCounter++);
     }
 
     public String getAccountNumber() {
