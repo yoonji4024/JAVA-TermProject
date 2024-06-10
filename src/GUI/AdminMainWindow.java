@@ -44,7 +44,7 @@ public class AdminMainWindow extends JFrame {
         });
 
         JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(4, 1));
+        panel.setLayout(new GridLayout(3, 1));
         panel.add(viewUserButton);
         panel.add(viewMyButton);
         panel.add(logoutButton);

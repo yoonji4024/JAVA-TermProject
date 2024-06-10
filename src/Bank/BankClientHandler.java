@@ -4,7 +4,8 @@ import java.io.*;
 import java.net.*;
 import java.util.List;
 
-import Exception.*;
+import Exception.AccountNotFoundException;
+import Exception.InsufficientFundsException;
 
 public class BankClientHandler extends Thread {
     private Socket socket;
@@ -29,25 +30,13 @@ public class BankClientHandler extends Thread {
                 System.out.println("Password: " + password);
                 BankService.handleRegisterRequest(userId, password, output);
             } else {
-                BankServer.loadUserData(); // 데이터를 다시 로드
+                BankServer.loadUserData();
                 User user = BankServer.getUser(userId);
                 Admin admin = BankServer.getAdmin(userId);
                 synchronized(this) {
                     if ("LOGIN".equals(requestType)) {
                         String password = input.readUTF();
                         System.out.println("Password: " + password);
-
-                        if (user != null) {
-                            System.out.println("User found: " + user);
-                        } else {
-                            System.out.println("User not found: " + userId);
-                        }
-
-                        if (admin != null) {
-                            System.out.println("Admin found: " + admin);
-                        } else {
-                            System.out.println("Admin not found: " + userId);
-                        }
 
                         if (user != null && user.getPassword().equals(password)) {
                             output.writeUTF("USER");
@@ -71,7 +60,6 @@ public class BankClientHandler extends Thread {
                     } else if ("VIEW_ACCOUNTS".equals(requestType)) {
                         if (user != null) {
                             List<Account> accounts = user.getAccounts();
-                            System.out.println("Sending accounts: " + accounts); // 추가 로그
                             output.writeObject(accounts);
                             output.flush();
                         } else {
@@ -142,7 +130,7 @@ public class BankClientHandler extends Thread {
                     } else if ("VIEW_ALL_USERS".equals(requestType)) {
                         if (admin != null) {
                             List<User> users = BankServer.getAllUsers();
-                            output.writeObject(users); // 사용자 목록을 객체로 전송
+                            output.writeObject(users);
                             output.flush();
                         } else {
                             output.writeUTF("FAIL");
@@ -153,7 +141,7 @@ public class BankClientHandler extends Thread {
                             String targetUserId = input.readUTF();
                             User targetUser = admin.getUserDetails(targetUserId);
                             if (targetUser != null) {
-                                output.writeUTF(targetUser.toString());
+                                output.writeObject(targetUser);
                             } else {
                                 output.writeUTF("User not found");
                             }
