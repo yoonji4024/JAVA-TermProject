@@ -6,9 +6,9 @@ import java.util.*;
 
 public class BankServer {
     private static final int PORT = 12345;
-    private static final String USER_DATA_FILE = "users.dat";
-    private static Map<String, User> users = Collections.synchronizedMap(new HashMap<>());
-    private static Map<String, Admin> admins = Collections.synchronizedMap(new HashMap<>());
+    private static final String USER_DATA_FILE = "users.ser"; // 파일 확장자를 .ser로 변경
+    private static final Map<String, User> users = Collections.synchronizedMap(new HashMap<>());
+    private static final Map<String, Admin> admins = Collections.synchronizedMap(new HashMap<>());
 
     public static void main(String[] args) {
         loadUserData();
@@ -17,6 +17,7 @@ public class BankServer {
             System.out.println("Bank server is running...");
             while (true) {
                 Socket socket = serverSocket.accept();
+                System.out.println("\nClient connected: " + socket.getInetAddress());
                 new BankClientHandler(socket).start();
             }
         } catch (IOException e) {
@@ -24,25 +25,31 @@ public class BankServer {
         }
     }
 
-    public static User getUser(String userId) {
+    public synchronized static User getUser(String userId) {
         synchronized (users) {
-            return users.get(userId);
+            System.out.println("in getUser: " + users);
+            User user = users.get(userId);
+            System.out.println("in getUser: " + user);
+            System.out.println("getUser: Searching for userId=" + userId + ", Found: " + user);
+            return user;
         }
     }
 
-    public static Admin getAdmin(String adminId) {
+    public synchronized static Admin getAdmin(String adminId) {
         synchronized (admins) {
-            return admins.get(adminId);
+            Admin admin = admins.get(adminId);
+            System.out.println("getAdmin: Searching for adminId=" + adminId + ", Found: " + admin);
+            return admin;
         }
     }
 
-    public static List<User> getAllUsers() {
+    public synchronized static List<User> getAllUsers() {
         synchronized (users) {
             return new ArrayList<>(users.values());
         }
     }
 
-    public static boolean addUser(User user) {
+    public synchronized static boolean addUser(User user) {
         synchronized (users) {
             if (!users.containsKey(user.getUserId())) {
                 users.put(user.getUserId(), user);
@@ -55,30 +62,84 @@ public class BankServer {
     }
 
     private static void initializeData() {
-        if (users.isEmpty()) {
-            users.put("user1", new User("user1", "password1"));
+        boolean dataChanged = false;
+
+        synchronized (users) {
+            if (users.isEmpty()) {
+                users.put("user1", new User("user1", "password1"));
+                System.out.println("Default user added: user1");
+                dataChanged = true;
+            }
         }
-        if (admins.isEmpty()) {
-            admins.put("admin1", new Admin("admin1", "adminpass"));
+
+        synchronized (admins) {
+            if (admins.isEmpty()) {
+                admins.put("admin1", new Admin("admin1", "adminpass"));
+                System.out.println("Default admin added: admin1");
+                dataChanged = true;
+            }
         }
-        saveUserData(); // 초기 데이터를 설정한 후 저장
+
+        if (dataChanged) {
+            saveUserData(); // 초기 데이터를 설정한 후 저장
+        }
     }
 
-    protected static void saveUserData() {
-        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(USER_DATA_FILE))) {
-            out.writeObject(users);
+    protected synchronized static void saveUserData() {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(USER_DATA_FILE))) {
+            synchronized (users) {
+                synchronized (admins) {
+                    oos.writeObject(users);
+                    oos.writeObject(admins);
+                    System.out.println("User data saved.");
+                    System.out.println("in save: " + users);
+                    System.out.println("in save (admins): " + admins);
+                }
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private static void loadUserData() {
-        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(USER_DATA_FILE))) {
-            users = (Map<String, User>) in.readObject();
+    public synchronized static void loadUserData() {
+        File file = new File(USER_DATA_FILE);
+        if (!file.exists()) {
+            System.out.println("User data file not found, starting with empty user data.");
+            return;
+        }
+
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
+            synchronized (users) {
+                synchronized (admins) {
+                    users.clear();
+                    admins.clear();
+                    users.putAll((Map<String, User>) ois.readObject());
+                    admins.putAll((Map<String, Admin>) ois.readObject());
+                    System.out.println("User data loaded.");
+                    System.out.println("in load: " + users);
+                    System.out.println("in load (admins): " + admins);
+                    printUserData(); // 추가 로그로 데이터가 제대로 로드되었는지 확인
+                }
+            }
         } catch (FileNotFoundException e) {
             System.out.println("User data file not found, starting with empty user data.");
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
+        }
+    }
+
+    private synchronized static void printUserData() {
+        synchronized (users) {
+            System.out.println("[Users]");
+            for (String userId : users.keySet()) {
+                System.out.println("UserID: " + userId + ", User: " + users.get(userId));
+            }
+        }
+        synchronized (admins) {
+            System.out.println("[Admins]");
+            for (String adminId : admins.keySet()) {
+                System.out.println("AdminID: " + adminId + ", Admin: " + admins.get(adminId));
+            }
         }
     }
 }

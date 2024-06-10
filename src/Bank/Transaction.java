@@ -1,8 +1,10 @@
 package Bank;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class Transaction {
+public class Transaction implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String type;
     private double amount;
     private Date date;
@@ -27,10 +29,12 @@ public class Transaction {
 
     @Override
     public String toString() {
-        return "Transaction{" +
-                "type='" + type + '\'' +
-                ", amount=" + amount +
-                ", date=" + date +
-                '}';
+        StringBuilder sb = new StringBuilder();
+        sb.append("Type: ").append(type).append("	")
+          .append("Amount: ").append(amount).append("	")
+          .append("Date: ").append(date).append("n");
+
+
+        return sb.toString();
     }
 }
